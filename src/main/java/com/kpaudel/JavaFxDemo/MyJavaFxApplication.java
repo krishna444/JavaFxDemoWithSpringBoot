@@ -12,18 +12,18 @@ public class MyJavaFxApplication extends Application {
     private ConfigurableApplicationContext applicationContext;
 
     @Override
-    public void init() throws Exception {
+    public void init() {
         this.applicationContext = new SpringApplicationBuilder(MainApplication.class).run();
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         ApplicationEvent event = new StageReadyEvent(primaryStage);
         this.applicationContext.publishEvent(event);
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         applicationContext.close();
         Platform.exit();
     }

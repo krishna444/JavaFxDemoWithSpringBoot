@@ -16,27 +16,34 @@ import java.io.IOException;
 public class StageInitializer implements ApplicationListener<MyJavaFxApplication.StageReadyEvent> {
     @Value("classpath:/test.fxml")
     private Resource testResource;
-    private String applicationTitle;
-    private ApplicationContext applicationContext;
+    private final String applicationTitle;
+    private final ApplicationContext applicationContext;
 
-    public StageInitializer(@Value("${spring.application.ui.title}") String applicationTitle, ApplicationContext applicationContext){
-        this.applicationTitle=applicationTitle;
-        this.applicationContext=applicationContext;
+    public StageInitializer(@Value("${spring.application.ui.title}") String applicationTitle, ApplicationContext applicationContext) {
+        this.applicationTitle = applicationTitle;
+        this.applicationContext = applicationContext;
     }
 
     @Override
     public void onApplicationEvent(MyJavaFxApplication.StageReadyEvent event) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(this.testResource.getURL());
-            fxmlLoader.setControllerFactory(aClass->this.applicationContext.getBean(aClass));
-            Parent parent=fxmlLoader.load();
+            fxmlLoader.setControllerFactory(this.applicationContext::getBean);
+            Parent parent = fxmlLoader.load();
             Stage stage = event.getStage();
-            stage.setScene(new Scene(parent,800,600));
+            stage.setScene(new Scene(parent, 800, 600));
             stage.setTitle(this.applicationTitle);
             stage.show();
-        }catch (IOException ex){
+        } catch (IOException ex) {
             throw new RuntimeException();
         }
+        ////Alternative without fxml
+        //Stage stage = event.getStage();
+        //StackPane parent=new StackPane();
+        //parent.getChildren().add(new Button("hello"));
+        //stage.setScene(new Scene(parent,800,600));
+        //stage.setTitle(this.applicationTitle);
+        //stage.show();
 
     }
 }
