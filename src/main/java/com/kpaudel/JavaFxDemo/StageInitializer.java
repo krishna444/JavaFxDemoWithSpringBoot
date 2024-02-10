@@ -1,7 +1,5 @@
 package com.kpaudel.JavaFxDemo;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
@@ -15,9 +13,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-
-import java.awt.*;
-import java.io.IOException;
 
 @Component
 public class StageInitializer implements ApplicationListener<MyJavaFxApplication.StageReadyEvent> {
