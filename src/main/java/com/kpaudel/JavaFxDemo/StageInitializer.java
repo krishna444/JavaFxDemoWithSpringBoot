@@ -9,21 +9,22 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StageInitializer implements ApplicationListener<MyJavaFxApplication.StageReadyEvent> {
-    private static final String PLAYER1 = "R";
-    private static final String PLAYER2 = "K";
-    private static final String NONE = " ";
-    private static final String PLAYER1_STYLE="-fx-font-size: 3em;-fx-color: blue;";
-    private static final String PLAYER2_STYLE="-fx-font-size: 3em;-fx-color: red;";
-    private static final String NONE_STYLE="-fx-font-size: 3em;-fx-color: gray;";
-    private String currentPlayer = PLAYER1;
+    @Autowired
+    private Environment environment;
+
+    private String player1, player2, none;
+    private String player1Style, player2Style, noneStyle;
+    private String currentPlayer;
     private Cell[][] cell = new Cell[3][3];
     private Button resetButton = new Button("Reset");
     private Text statusLabel = new Text();
@@ -32,9 +33,18 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
     private final String applicationTitle;
     private final ApplicationContext applicationContext;
 
-    public StageInitializer(@Value("${spring.application.ui.title}") String applicationTitle, ApplicationContext applicationContext) {
+    @Autowired
+    public StageInitializer(@Value("${spring.application.ui.title}") String applicationTitle, Environment environment, ApplicationContext applicationContext) {
         this.applicationTitle = applicationTitle;
         this.applicationContext = applicationContext;
+        this.environment = environment;
+        this.player1 = this.environment.getProperty("player1");
+        this.currentPlayer = player1;
+        this.player2 = this.environment.getProperty("player2");
+        this.none = " ";
+        this.player1Style = this.environment.getProperty("player1.style");
+        this.player2Style = this.environment.getProperty("player2.style");
+        this.noneStyle = this.environment.getProperty("default.style");
     }
 
     @Override
@@ -58,6 +68,7 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
         pane.getChildren().add(statusLabel);
         statusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         statusLabel.setTranslateY(700);
+        statusLabel.setText("Player " + currentPlayer + "'s turn");
 
 
         Stage stage = event.getStage();
@@ -71,7 +82,7 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
     private boolean isBoardFull() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (cell[i][j].getPlayer() == NONE) {
+                if (cell[i][j].getPlayer() == none) {
                     return false;
                 }
             }
@@ -105,34 +116,35 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
     public void reset() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                cell[i][j].setText(NONE);
-                cell[i][j].setStyle(NONE_STYLE);
-                cell[i][j].player = NONE;
+                cell[i][j].setText(none);
+                cell[i][j].setStyle(noneStyle);
+                cell[i][j].player = none;
             }
         }
-        this.currentPlayer = PLAYER1;
+        this.currentPlayer = player1;
+        this.statusLabel.setText("Player " + currentPlayer + "'s turn");
     }
 
 
     private class Cell extends Button {
-        private String player = NONE;
+        private String player = none;
 
         public Cell() {
             setPrefSize(200, 200);
-            setStyle(NONE_STYLE);
+            setStyle(noneStyle);
             setOnAction(e -> {
-                if (player == NONE && currentPlayer != NONE) {
+                if (player == none && currentPlayer != none) {
                     player = currentPlayer;
                     setText(player);
-                    setStyle(currentPlayer == PLAYER1 ? PLAYER1_STYLE : PLAYER2_STYLE);
+                    setStyle(currentPlayer == player1 ? player1Style : player2Style);
                     if (hasWon(currentPlayer)) {
                         statusLabel.setText("Player " + currentPlayer + " has won");
-                        currentPlayer = NONE;
+                        currentPlayer = none;
                     } else if (isBoardFull()) {
                         statusLabel.setText("It's a draw");
-                        currentPlayer = NONE;
+                        currentPlayer = none;
                     } else {
-                        currentPlayer = (currentPlayer == PLAYER1) ? PLAYER2 : PLAYER1;
+                        currentPlayer = (currentPlayer == player1) ? player2 : player1;
                         statusLabel.setText("Player " + currentPlayer + "'s turn");
                     }
                 }
