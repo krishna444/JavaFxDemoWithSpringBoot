@@ -2,6 +2,7 @@ package com.kpaudel.JavaFxDemo;
 
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
@@ -16,8 +17,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class StageInitializer implements ApplicationListener<MyJavaFxApplication.StageReadyEvent> {
-    private char currentPlayer = 'X';
+    private static final String PLAYER1 = "R";
+    private static final String PLAYER2 = "K";
+    private static final String NONE = " ";
+    private static final String PLAYER1_STYLE="-fx-font-size: 3em;-fx-color: blue;";
+    private static final String PLAYER2_STYLE="-fx-font-size: 3em;-fx-color: red;";
+    private static final String NONE_STYLE="-fx-font-size: 3em;-fx-color: gray;";
+    private String currentPlayer = PLAYER1;
     private Cell[][] cell = new Cell[3][3];
+    private Button resetButton = new Button("Reset");
     private Text statusLabel = new Text();
     @Value("classpath:/test.fxml")
     private Resource testResource;
@@ -41,12 +49,20 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
 
         Pane pane = new Pane();
         pane.getChildren().add(gridPane);
+        pane.getChildren().add(this.resetButton);
+        this.resetButton.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        this.resetButton.setTranslateY(610);
+        this.resetButton.setOnAction(e -> {
+            reset();
+        });
         pane.getChildren().add(statusLabel);
         statusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        statusLabel.setTranslateY(330);
+        statusLabel.setTranslateY(700);
+
 
         Stage stage = event.getStage();
-        Scene scene = new Scene(pane, 300, 350);
+        Scene scene = new Scene(pane, 600, 750);
+        stage.setTitle(this.applicationTitle);
         stage.setScene(scene);
         stage.show();
 
@@ -55,7 +71,7 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
     private boolean isBoardFull() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (cell[i][j].getPlayer() == ' ') {
+                if (cell[i][j].getPlayer() == NONE) {
                     return false;
                 }
             }
@@ -63,7 +79,7 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
         return true;
     }
 
-    private boolean hasWon(char player) {
+    private boolean hasWon(String player) {
         // Check rows
         for (int i = 0; i < 3; i++) {
             if (cell[i][0].getPlayer() == player && cell[i][1].getPlayer() == player && cell[i][2].getPlayer() == player) {
@@ -86,33 +102,44 @@ public class StageInitializer implements ApplicationListener<MyJavaFxApplication
         return false;
     }
 
+    public void reset() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                cell[i][j].setText(NONE);
+                cell[i][j].setStyle(NONE_STYLE);
+                cell[i][j].player = NONE;
+            }
+        }
+        this.currentPlayer = PLAYER1;
+    }
+
+
     private class Cell extends Button {
-        private char player = ' ';
+        private String player = NONE;
 
         public Cell() {
-            setPrefSize(100, 100);
-            setStyle("-fx-font-size: 3em;");
+            setPrefSize(200, 200);
+            setStyle(NONE_STYLE);
             setOnAction(e -> {
-                if (player == ' ' && currentPlayer != ' ') {
+                if (player == NONE && currentPlayer != NONE) {
                     player = currentPlayer;
-                    setText(String.valueOf(player));
+                    setText(player);
+                    setStyle(currentPlayer == PLAYER1 ? PLAYER1_STYLE : PLAYER2_STYLE);
                     if (hasWon(currentPlayer)) {
                         statusLabel.setText("Player " + currentPlayer + " has won");
-                        currentPlayer = ' ';
+                        currentPlayer = NONE;
                     } else if (isBoardFull()) {
                         statusLabel.setText("It's a draw");
-                        currentPlayer = ' ';
+                        currentPlayer = NONE;
                     } else {
-                        currentPlayer = (currentPlayer == 'X') ? '0' : 'X';
+                        currentPlayer = (currentPlayer == PLAYER1) ? PLAYER2 : PLAYER1;
                         statusLabel.setText("Player " + currentPlayer + "'s turn");
                     }
                 }
             });
-
-
         }
 
-        public char getPlayer() {
+        public String getPlayer() {
             return player;
         }
     }
