@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class StageInitializer implements ApplicationListener<MyJavaFxApplication.StageReadyEvent> {
-    @Autowired
     private Environment environment;
 
     private String player1, player2, none;
